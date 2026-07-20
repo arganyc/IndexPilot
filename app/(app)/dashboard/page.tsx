@@ -72,8 +72,32 @@ async function getDashboardOnboardingState() {
 }
 
 export default async function DashboardPage() {
-  const { state, historyDestination, inspectDestination } =
-    await getDashboardOnboardingState();
+  let dashboardState;
+
+  try {
+    dashboardState = await getDashboardOnboardingState();
+  } catch {
+    return (
+      <div className="grid gap-6">
+        <EmptyState
+          title="Sign in required"
+          description="Log in to view your IndexPilot dashboard and continue managing your websites."
+          primaryAction={
+            <Button asChild>
+              <Link href="/login">Log in</Link>
+            </Button>
+          }
+          secondaryAction={
+            <Button asChild variant="outline">
+              <Link href="/signup">Start Free</Link>
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  const { state, historyDestination, inspectDestination } = dashboardState;
   const checklist = createOnboardingChecklist(state, {
     connectGoogleDestination: "/api/google/oauth/start",
     selectPropertyDestination: "/search-console/properties",

@@ -134,9 +134,8 @@ describe("route group layouts", () => {
     );
 
     expect(markup).toContain("Welcome to IndexPilot");
-    expect(markup).toContain("Your indexing workspace is ready");
     expect(markup).toContain(
-      "Add a website, connect Search Console, and start inspecting URLs to populate this dashboard."
+      "Inspect your first URL to begin building insights about how Google sees your website."
     );
     expect(markup).toContain('href="/websites/new"');
     expect(markup).toContain('href="/settings/google"');
