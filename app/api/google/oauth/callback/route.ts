@@ -21,7 +21,10 @@ export async function GET(request: NextRequest) {
   const state = url.searchParams.get("state");
   const cookieStore = await cookies();
   const expectedState = cookieStore.get(GOOGLE_OAUTH_STATE_COOKIE)?.value;
-  const redirectUrl = new URL("/settings/google", getAppOrigin(request.url));
+  const redirectUrl = new URL(
+    "/settings/google",
+    getAppOrigin(request.url, request.headers)
+  );
 
   cookieStore.delete(GOOGLE_OAUTH_STATE_COOKIE);
 

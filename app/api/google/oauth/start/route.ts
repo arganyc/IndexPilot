@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(
       new URL(
         "/settings/google?error=oauth_not_configured",
-        getAppOrigin(request.url)
+        getAppOrigin(request.url, request.headers)
       )
     );
   }
