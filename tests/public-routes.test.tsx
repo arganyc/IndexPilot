@@ -109,7 +109,7 @@ describe("public placeholder routes", () => {
 
       expect(markup).toContain(`<h1`);
       expect(markup).toContain(heading);
-      expect(markup).toContain("under development");
+      expect(markup).not.toContain("under development");
     }
   );
 
@@ -129,11 +129,14 @@ describe("public placeholder routes", () => {
       const routeModule = await importPage();
       const Page = routeModule.default;
 
-      const markup = renderToStaticMarkup(<Page />);
+      const page = await Page();
+      const markup = renderToStaticMarkup(page);
 
       expect(markup).toContain(`<h1`);
       expect(markup).toContain(heading);
-      expect(markup).toContain("will be added later");
+      expect(markup).toContain('name="email"');
+      expect(markup).toContain('name="password"');
+      expect(markup).not.toContain("will be added later");
     }
   );
 
@@ -150,7 +153,8 @@ describe("public placeholder routes", () => {
   it("links login to signup and back home", async () => {
     const { default: LoginPage } = await import("../app/(auth)/login/page");
 
-    const markup = renderToStaticMarkup(<LoginPage />);
+    const page = await LoginPage();
+    const markup = renderToStaticMarkup(page);
 
     expect(markup).toContain('href="/signup"');
     expect(markup).toContain('href="/"');
@@ -159,7 +163,8 @@ describe("public placeholder routes", () => {
   it("links signup to login and back home", async () => {
     const { default: SignupPage } = await import("../app/(auth)/signup/page");
 
-    const markup = renderToStaticMarkup(<SignupPage />);
+    const page = await SignupPage();
+    const markup = renderToStaticMarkup(page);
 
     expect(markup).toContain('href="/login"');
     expect(markup).toContain('href="/"');
@@ -168,10 +173,11 @@ describe("public placeholder routes", () => {
   it("renders auth pages without AppShell", async () => {
     const { default: AuthLayout } = await import("../app/(auth)/layout");
     const { default: LoginPage } = await import("../app/(auth)/login/page");
+    const loginPage = await LoginPage();
 
     const markup = renderToStaticMarkup(
       <AuthLayout>
-        <LoginPage />
+        {loginPage}
       </AuthLayout>
     );
 
@@ -222,6 +228,7 @@ describe("public placeholder routes", () => {
     );
     const { default: AuthLayout } = await import("../app/(auth)/layout");
     const { default: LoginPage } = await import("../app/(auth)/login/page");
+    const loginPage = await LoginPage();
 
     const marketingMarkup = renderToStaticMarkup(
       <MarketingLayout>
@@ -230,7 +237,7 @@ describe("public placeholder routes", () => {
     );
     const authMarkup = renderToStaticMarkup(
       <AuthLayout>
-        <LoginPage />
+        {loginPage}
       </AuthLayout>
     );
 
