@@ -7,6 +7,7 @@ import {
   createGoogleOAuthState,
   GOOGLE_OAUTH_STATE_COOKIE,
 } from "@/lib/google/oauth";
+import { getAppOrigin } from "@/lib/app-url";
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +26,10 @@ export async function GET(request: NextRequest) {
     return response;
   } catch {
     return NextResponse.redirect(
-      new URL("/settings/google?error=oauth_not_configured", request.url)
+      new URL(
+        "/settings/google?error=oauth_not_configured",
+        getAppOrigin(request.url)
+      )
     );
   }
 }

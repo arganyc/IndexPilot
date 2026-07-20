@@ -7,6 +7,7 @@ import {
   connectGoogleAccount,
   createPrismaGoogleAccountRepository,
 } from "@/lib/google/accounts";
+import { getAppOrigin } from "@/lib/app-url";
 import {
   exchangeGoogleOAuthCode,
   fetchGoogleUserInfo,
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
   const state = url.searchParams.get("state");
   const cookieStore = await cookies();
   const expectedState = cookieStore.get(GOOGLE_OAUTH_STATE_COOKIE)?.value;
-  const redirectUrl = new URL("/settings/google", url.origin);
+  const redirectUrl = new URL("/settings/google", getAppOrigin(request.url));
 
   cookieStore.delete(GOOGLE_OAUTH_STATE_COOKIE);
 
