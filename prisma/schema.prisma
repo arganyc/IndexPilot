@@ -1,0 +1,249 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum WebsiteProtocol {
+  HTTP
+  HTTPS
+}
+
+enum Platform {
+  WORDPRESS
+  NEXTJS
+  CUSTOM
+  SHOPIFY
+  OTHER
+}
+
+enum WebsitePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum WebsiteStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum SitemapType {
+  INDEX
+  URL_SET
+  UNKNOWN
+}
+
+enum SitemapStatus {
+  PENDING
+  FETCHING
+  IMPORTED
+  FAILED
+  ARCHIVED
+}
+
+enum SearchConsolePropertySyncStatus {
+  ACTIVE
+  MISSING
+  ERROR
+}
+
+enum UrlInspectionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model Organization {
+  id             String          @id
+  urlInspections UrlInspection[]
+}
+
+model Website {
+  id                      String                  @id @default(cuid())
+  name                    String
+  domain                  String
+  normalizedDomain        String                  @unique
+  protocol                WebsiteProtocol         @default(HTTPS)
+  platform                Platform                @default(OTHER)
+  priority                WebsitePriority         @default(MEDIUM)
+  status                  WebsiteStatus           @default(ACTIVE)
+  notes                   String?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+  sitemaps                Sitemap[]
+  urlRecords              UrlRecord[]
+  activityLogs            ActivityLog[]
+  searchConsoleProperties SearchConsoleProperty[]
+  urlInspections          UrlInspection[]
+}
+
+model Sitemap {
+  id                    String        @id @default(cuid())
+  websiteId             String
+  url                   String
+  normalizedUrl         String
+  type                  SitemapType   @default(UNKNOWN)
+  status                SitemapStatus @default(PENDING)
+  parentSitemapId       String?
+  urlCount              Int           @default(0)
+  lastFetchedAt         DateTime?
+  lastSuccessfulFetchAt DateTime?
+  lastError             String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  website               Website       @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  parentSitemap         Sitemap?      @relation("SitemapChildren", fields: [parentSitemapId], references: [id], onDelete: SetNull)
+  childSitemaps         Sitemap[]     @relation("SitemapChildren")
+  urlRecords            UrlRecord[]
+  activityLogs          ActivityLog[]
+
+  @@unique([websiteId, normalizedUrl])
+  @@index([websiteId, status])
+  @@index([websiteId, type])
+  @@index([parentSitemapId])
+  @@index([lastFetchedAt])
+}
+
+model UrlRecord {
+  id                    String          @id @default(cuid())
+  websiteId             String
+  sitemapId             String?
+  url                   String
+  normalizedUrl         String
+  path                  String
+  sitemapLastModifiedAt DateTime?
+  firstDiscoveredAt     DateTime        @default(now())
+  lastDiscoveredAt      DateTime        @default(now())
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  website               Website         @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  sitemap               Sitemap?        @relation(fields: [sitemapId], references: [id], onDelete: SetNull)
+  urlInspections        UrlInspection[]
+
+  @@unique([websiteId, normalizedUrl])
+  @@index([websiteId, path])
+  @@index([websiteId, sitemapLastModifiedAt])
+  @@index([sitemapId])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  websiteId String?
+  sitemapId String?
+  action    String
+  status    String
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  website   Website? @relation(fields: [websiteId], references: [id], onDelete: SetNull)
+  sitemap   Sitemap? @relation(fields: [sitemapId], references: [id], onDelete: SetNull)
+
+  @@index([websiteId, createdAt])
+  @@index([sitemapId, createdAt])
+  @@index([action, createdAt])
+}
+
+model GoogleAccount {
+  id             String                  @id @default(cuid())
+  organizationId String
+  googleUserId   String
+  email          String
+  displayName    String?
+  avatarUrl      String?
+  accessToken    String
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  lastSyncedAt   DateTime?
+  syncError      String?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  properties     SearchConsoleProperty[]
+
+  @@unique([organizationId, googleUserId])
+  @@index([organizationId])
+  @@index([email])
+}
+
+model SearchConsoleProperty {
+  id                  String                          @id @default(cuid())
+  organizationId      String
+  googleAccountId     String
+  websiteId           String?
+  siteUrl             String
+  normalizedSiteUrl   String
+  propertyType        String
+  permissionLevel     String
+  verified            Boolean                         @default(false)
+  syncStatus          SearchConsolePropertySyncStatus @default(ACTIVE)
+  lastSyncedAt        DateTime                        @default(now())
+  lastSeenAt          DateTime                        @default(now())
+  removedFromGoogleAt DateTime?
+  createdAt           DateTime                        @default(now())
+  updatedAt           DateTime                        @updatedAt
+  googleAccount       GoogleAccount                   @relation(fields: [googleAccountId], references: [id], onDelete: Cascade)
+  website             Website?                        @relation(fields: [websiteId], references: [id], onDelete: SetNull)
+  urlInspections      UrlInspection[]
+
+  @@unique([googleAccountId, normalizedSiteUrl])
+  @@index([organizationId])
+  @@index([googleAccountId])
+  @@index([websiteId])
+  @@index([syncStatus])
+  @@index([organizationId, normalizedSiteUrl])
+  @@index([googleAccountId, syncStatus])
+}
+
+model UrlInspection {
+  id                      String                @id @default(cuid())
+  organizationId          String
+  websiteId               String
+  searchConsolePropertyId String
+  urlRecordId             String?
+  inspectedUrl            String
+  normalizedUrl           String
+  requestedAt             DateTime              @default(now())
+  completedAt             DateTime?
+  status                  UrlInspectionStatus   @default(PENDING)
+  inspectionResultLink    String?
+  verdict                 String?
+  coverageState           String?
+  indexingState           String?
+  robotsTxtState          String?
+  pageFetchState          String?
+  googleCanonical         String?
+  userCanonical           String?
+  lastCrawlTime           DateTime?
+  crawledAs               String?
+  referringUrls           Json?
+  sitemapUrls             Json?
+  errorCode               String?
+  errorMessage            String?
+  rawResponse             Json?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  organization            Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  website                 Website               @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  searchConsoleProperty   SearchConsoleProperty @relation(fields: [searchConsolePropertyId], references: [id], onDelete: Cascade)
+  urlRecord               UrlRecord?            @relation(fields: [urlRecordId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([websiteId])
+  @@index([searchConsolePropertyId])
+  @@index([urlRecordId])
+  @@index([normalizedUrl])
+  @@index([status])
+  @@index([requestedAt])
+  @@index([completedAt])
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset>
+  <url>
+    <loc>https://www.example.com/duplicate/</loc>
+  </url>
+  <url>
+    <loc>https://example.com/duplicate</loc>
+  </url>
+</urlset>

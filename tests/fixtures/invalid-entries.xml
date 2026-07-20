@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset>
+  <url>
+    <lastmod>2026-07-18</lastmod>
+  </url>
+  <url>
+    <loc>not-a-url</loc>
+  </url>
+  <url>
+    <loc>https://example.com/bad-lastmod</loc>
+    <lastmod>not-a-date</lastmod>
+  </url>
+  <url>
+    <loc>https://example.com/bad-priority</loc>
+    <priority>2.5</priority>
+  </url>
+</urlset>

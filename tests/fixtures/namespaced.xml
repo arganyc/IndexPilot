@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sm:urlset xmlns:sm="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sm:url>
+    <sm:loc>https://example.com/namespaced</sm:loc>
+    <sm:lastmod>2026-07-18T12:00:00Z</sm:lastmod>
+  </sm:url>
+</sm:urlset>
